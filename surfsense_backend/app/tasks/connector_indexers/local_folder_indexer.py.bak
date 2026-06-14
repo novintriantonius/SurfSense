@@ -1248,6 +1248,7 @@ async def _mirror_folder_structure_from_paths(
     return mapping, root_folder_id
 
 
+UPLOAD_BATCH_CONCURRENCY = 5
 
 
 async def index_uploaded_files(

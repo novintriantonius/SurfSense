@@ -692,7 +692,7 @@ class Config:
         os.getenv("CREDIT_LOW_BALANCE_WARNING_MICROS", "500000")
     )
     
-    UPLOAD_BATCH_CONCURRENCY = int(os.getenv("UPLOAD_BATCH_CONCURRENCY", "5"))
+    UPLOAD_BATCH_CONCURRENCY = int(os.getenv("UPLOAD_BATCH_CONCURRENCY", "1"))
 
     # Auto-reload (off-session Stripe top-up) feature flag and guards.
     AUTO_RELOAD_ENABLED = os.getenv("AUTO_RELOAD_ENABLED", "FALSE").upper() == "TRUE"

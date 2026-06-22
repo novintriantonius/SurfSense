@@ -1707,19 +1707,33 @@ async def folder_upload(
         *(_read_and_save(f, i) for i, f in enumerate(files))
     )
 
-    from app.tasks.celery_tasks.document_tasks import (
-        index_uploaded_folder_files_task,
-    )
+    from app.services.task_dispatcher import get_task_dispatcher
 
-    index_uploaded_folder_files_task.delay(
-        search_space_id=search_space_id,
-        user_id=str(user.id),
-        folder_name=folder_name,
-        root_folder_id=root_folder_id,
-        use_vision_llm=use_vision_llm,
-        file_mappings=list(file_mappings),
-        processing_mode=validated_mode.value,
-    )
+    dispatcher = get_task_dispatcher()
+    if hasattr(dispatcher, "dispatch_uploaded_folder_processing"):
+        await dispatcher.dispatch_uploaded_folder_processing(
+            search_space_id=search_space_id,
+            user_id=str(user.id),
+            folder_name=folder_name,
+            root_folder_id=root_folder_id,
+            use_vision_llm=use_vision_llm,
+            file_mappings=list(file_mappings),
+            processing_mode=validated_mode.value,
+        )
+    else:
+        from app.tasks.celery_tasks.document_tasks import (
+            index_uploaded_folder_files_task,
+        )
+
+        index_uploaded_folder_files_task.delay(
+            search_space_id=search_space_id,
+            user_id=str(user.id),
+            folder_name=folder_name,
+            root_folder_id=root_folder_id,
+            use_vision_llm=use_vision_llm,
+            file_mappings=list(file_mappings),
+            processing_mode=validated_mode.value,
+        )
 
     return {
         "message": f"Folder upload started for {len(files)} file(s)",

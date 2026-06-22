@@ -55,30 +55,32 @@ export function useFolderSync() {
 				);
 				const unlinkFiles = batch.files.filter((f) => f.action === "unlink");
 
-				if (addChangeFiles.length > 0 && electronAPI?.readLocalFiles) {
-					const fullPaths = addChangeFiles.map((f) => f.fullPath);
-					const fileDataArr = await electronAPI.readLocalFiles(fullPaths);
+				if (process.env.NEXT_PUBLIC_DISABLE_AUTO_INDEXING !== "true") {
+					if (addChangeFiles.length > 0 && electronAPI?.readLocalFiles) {
+						const fullPaths = addChangeFiles.map((f) => f.fullPath);
+						const fileDataArr = await electronAPI.readLocalFiles(fullPaths);
 
-					const files: File[] = fileDataArr.map((fd) => {
-						const blob = new Blob([fd.data], { type: fd.mimeType || "application/octet-stream" });
-						return new File([blob], fd.name, { type: blob.type });
-					});
+						const files: File[] = fileDataArr.map((fd) => {
+							const blob = new Blob([fd.data], { type: fd.mimeType || "application/octet-stream" });
+							return new File([blob], fd.name, { type: blob.type });
+						});
 
-					await documentsApiService.folderUploadFiles(files, {
-						folder_name: batch.folderName,
-						search_space_id: batch.searchSpaceId,
-						relative_paths: addChangeFiles.map((f) => f.relativePath),
-						root_folder_id: batch.rootFolderId,
-					});
-				}
+						await documentsApiService.folderUploadFiles(files, {
+							folder_name: batch.folderName,
+							search_space_id: batch.searchSpaceId,
+							relative_paths: addChangeFiles.map((f) => f.relativePath),
+							root_folder_id: batch.rootFolderId,
+						});
+					}
 
-				if (unlinkFiles.length > 0) {
-					await documentsApiService.folderNotifyUnlinked({
-						folder_name: batch.folderName,
-						search_space_id: batch.searchSpaceId,
-						root_folder_id: batch.rootFolderId,
-						relative_paths: unlinkFiles.map((f) => f.relativePath),
-					});
+					if (unlinkFiles.length > 0) {
+						await documentsApiService.folderNotifyUnlinked({
+							folder_name: batch.folderName,
+							search_space_id: batch.searchSpaceId,
+							root_folder_id: batch.rootFolderId,
+							relative_paths: unlinkFiles.map((f) => f.relativePath),
+						});
+					}
 				}
 
 				if (electronAPI?.acknowledgeFileEvents && batch.ackIds.length > 0) {

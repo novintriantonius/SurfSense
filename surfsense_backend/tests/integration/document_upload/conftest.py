@@ -87,6 +87,32 @@ class InlineTaskDispatcher:
             )
 
 
+    async def dispatch_uploaded_folder_processing(
+        self,
+        *,
+        search_space_id: int,
+        user_id: str,
+        folder_name: str,
+        root_folder_id: int | None,
+        file_mappings: list[dict],
+        use_vision_llm: bool = False,
+        processing_mode: str = "basic",
+    ) -> None:
+        from app.tasks.celery_tasks.document_tasks import (
+            _index_uploaded_folder_files_async,
+        )
+
+        with contextlib.suppress(Exception):
+            await _index_uploaded_folder_files_async(
+                search_space_id=search_space_id,
+                user_id=user_id,
+                folder_name=folder_name,
+                root_folder_id=root_folder_id,
+                file_mappings=file_mappings,
+                use_vision_llm=use_vision_llm,
+                processing_mode=processing_mode,
+            )
+
 app.dependency_overrides[get_task_dispatcher] = lambda: InlineTaskDispatcher()
 
 
